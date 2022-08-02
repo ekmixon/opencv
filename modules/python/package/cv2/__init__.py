@@ -88,10 +88,8 @@ def bootstrap():
                 applySysPathWorkaround = True
         except:
             if DEBUG: print('OpenCV loader: exception during checking workaround for sys.path[0]')
-            pass  # applySysPathWorkaround is False
-
     for p in reversed(l_vars['PYTHON_EXTENSIONS_PATHS']):
-        sys.path.insert(1 if not applySysPathWorkaround else 0, p)
+        sys.path.insert(0 if applySysPathWorkaround else 1, p)
 
     if os.name == 'nt':
         if sys.version_info[:2] >= (3, 8):  # https://github.com/python/cpython/pull/12302
@@ -99,8 +97,8 @@ def bootstrap():
                 try:
                     os.add_dll_directory(p)
                 except Exception as e:
-                    if DEBUG: print('Failed os.add_dll_directory(): '+ str(e))
-                    pass
+                    if DEBUG:
+                        print(f'Failed os.add_dll_directory(): {str(e)}')
         os.environ['PATH'] = ';'.join(l_vars['BINARIES_PATHS']) + ';' + os.environ.get('PATH', '')
         if DEBUG: print('OpenCV loader: PATH={}'.format(str(os.environ['PATH'])))
     else:

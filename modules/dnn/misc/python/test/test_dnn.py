@@ -60,7 +60,7 @@ def printParams(backend, target):
         cv.dnn.DNN_TARGET_OPENCL_FP16: 'OCL_FP16',
         cv.dnn.DNN_TARGET_MYRIAD: 'MYRIAD'
     }
-    print('%s/%s' % (backendNames[backend], targetNames[target]))
+    print(f'{backendNames[backend]}/{targetNames[target]}')
 
 testdata_required = bool(os.environ.get('OPENCV_DNN_TEST_REQUIRE_TESTDATA', False))
 
@@ -277,9 +277,10 @@ class dnn_test(NewOpenCVTests):
 
             # Generate inputs
             numInputs = 10
-            inputs = []
-            for _ in range(numInputs):
-                inputs.append(np.random.standard_normal([2, 6, 75, 113]).astype(np.float32))
+            inputs = [
+                np.random.standard_normal([2, 6, 75, 113]).astype(np.float32)
+                for _ in range(numInputs)
+            ]
 
             # Run synchronously
             refs = []

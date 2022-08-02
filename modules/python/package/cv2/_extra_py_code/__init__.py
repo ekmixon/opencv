@@ -4,9 +4,7 @@ import importlib
 __all__ = ['init']
 
 
-DEBUG = False
-if hasattr(sys, 'OpenCV_LOADER_DEBUG'):
-    DEBUG = True
+DEBUG = bool(hasattr(sys, 'OpenCV_LOADER_DEBUG'))
 
 
 def _load_py_code(base, name):
@@ -15,7 +13,8 @@ def _load_py_code(base, name):
     except ImportError:
         return  # extension doesn't exist?
 
-    if DEBUG: print('OpenCV loader: added python code extension for: ' + name)
+    if DEBUG:
+        print(f'OpenCV loader: added python code extension for: {name}')
 
     if hasattr(m, '__all__'):
         export_members = { k : getattr(m, k) for k in m.__all__ }
@@ -27,7 +26,8 @@ def _load_py_code(base, name):
             continue
         if isinstance(v, type(sys)):  # don't bring modules
             continue
-        if DEBUG: print('    symbol: {} = {}'.format(k, v))
+        if DEBUG:
+            print(f'    symbol: {k} = {v}')
         setattr(sys.modules[base + name ], k, v)
 
     del sys.modules[__name__ + name]

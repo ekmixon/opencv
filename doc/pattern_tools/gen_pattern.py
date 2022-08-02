@@ -40,8 +40,8 @@ class PatternMaker:
         pattern_height = ((self.rows - 1.0) * spacing) + (2.0 * r)
         x_spacing = (self.width - pattern_width) / 2.0
         y_spacing = (self.height - pattern_height) / 2.0
-        for x in range(0, self.cols):
-            for y in range(0, self.rows):
+        for x in range(self.cols):
+            for y in range(self.rows):
                 dot = SVG("circle", cx=(x * spacing) + x_spacing + r,
                           cy=(y * spacing) + y_spacing + r, r=r, fill="black", stroke="none")
                 self.g.append(dot)
@@ -53,8 +53,8 @@ class PatternMaker:
         pattern_height = ((self.rows-1.0) * spacing) + (2.0 * r)
         x_spacing = (self.width - pattern_width) / 2.0
         y_spacing = (self.height - pattern_height) / 2.0
-        for x in range(0, self.cols):
-            for y in range(0, self.rows):
+        for x in range(self.cols):
+            for y in range(self.rows):
                 dot = SVG("circle", cx=(2 * x * spacing) + (y % 2)*spacing + x_spacing + r,
                           cy=(y * spacing) + y_spacing + r, r=r, fill="black", stroke="none")
                 self.g.append(dot)
@@ -63,8 +63,8 @@ class PatternMaker:
         spacing = self.square_size
         xspacing = (self.width - self.cols * self.square_size) / 2.0
         yspacing = (self.height - self.rows * self.square_size) / 2.0
-        for x in range(0, self.cols):
-            for y in range(0, self.rows):
+        for x in range(self.cols):
+            for y in range(self.rows):
                 if x % 2 == y % 2:
                     square = SVG("rect", x=x * spacing + xspacing, y=y * spacing + yspacing, width=spacing,
                                  height=spacing, fill="black", stroke="none")
@@ -100,8 +100,7 @@ def main():
                         dest="page_size", choices=["A0", "A1", "A2", "A3", "A4", "A5"])
     args = parser.parse_args()
 
-    show_help = args.show_help
-    if show_help:
+    if show_help := args.show_help:
         parser.print_help()
         return
     output = args.output
@@ -111,7 +110,7 @@ def main():
     units = args.units
     square_size = args.square_size
     radius_rate = args.radius_rate
-    if 'page_width' and 'page_height' in args:
+    if 'page_height' in args:
         page_width = args.page_width
         page_height = args.page_height
     else:

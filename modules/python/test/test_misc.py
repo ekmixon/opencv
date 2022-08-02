@@ -19,21 +19,16 @@ def get_limits(dtype):
     if not is_numeric(dtype):
         return None, None
 
-    if np.issubdtype(dtype, np.integer):
-        info = np.iinfo(dtype)
-    else:
-        info = np.finfo(dtype)
+    info = np.iinfo(dtype) if np.issubdtype(dtype, np.integer) else np.finfo(dtype)
     return info.min, info.max
 
 
 def get_conversion_error_msg(value, expected, actual):
-    return 'Conversion "{}" of type "{}" failed\nExpected: "{}" vs Actual "{}"'.format(
-        value, type(value).__name__, expected, actual
-    )
+    return f'Conversion "{value}" of type "{type(value).__name__}" failed\nExpected: "{expected}" vs Actual "{actual}"'
 
 
 def get_no_exception_msg(value):
-    return 'Exception is not risen for {} of type {}'.format(value, type(value).__name__)
+    return f'Exception is not risen for {value} of type {type(value).__name__}'
 
 class Bindings(NewOpenCVTests):
 
@@ -71,8 +66,6 @@ class Bindings(NewOpenCVTests):
             self.assertEqual("Dead code", 0)
         except cv.error as _e:
             self.assertEqual(handler_called[0], True)
-            pass
-
         cv.redirectError(None)
         try:
             cv.imshow("", None)  # This causes an assert
@@ -91,9 +84,12 @@ class Bindings(NewOpenCVTests):
                          'overload (int={}, point=(x={}, y={}))'.format(val, *point),
                          "Can't select first overload if one of the arguments are provided as keyword")
 
-        self.assertEqual(cv.utils.testOverloadResolution(val),
-                         'overload (int={}, point=(x=42, y=24))'.format(val),
-                         "Can't select first overload if one of the arguments has default value")
+        self.assertEqual(
+            cv.utils.testOverloadResolution(val),
+            f'overload (int={val}, point=(x=42, y=24))',
+            "Can't select first overload if one of the arguments has default value",
+        )
+
 
         rect = (1, 5, 10, 23)
         self.assertEqual(cv.utils.testOverloadResolution(rect),
@@ -127,10 +123,9 @@ class Arguments(NewOpenCVTests):
             result = conversion(value).lower()
         except Exception as e:
             self.fail(
-                '{} "{}" is risen for conversion {} of type {}'.format(
-                    type(e).__name__, e, value, type(value).__name__
-                )
+                f'{type(e).__name__} "{e}" is risen for conversion {value} of type {type(value).__name__}'
             )
+
         else:
             return result
 
@@ -296,12 +291,16 @@ class Arguments(NewOpenCVTests):
         for nan in (float('NaN'), np.nan, np.float32(np.nan), np.double(np.nan),
                     np.double(float('NaN'))):
             actual = try_to_convert(nan)
-            self.assertIn('nan', actual, msg="Can't convert nan of type {} to float. "
-                          "Actual: {}".format(type(nan).__name__, actual))
+            self.assertIn(
+                'nan',
+                actual,
+                msg=f"Can't convert nan of type {type(nan).__name__} to float. Actual: {actual}",
+            )
+
 
         min_double, max_double = get_limits(ctypes.c_double)
         for inf in (min_float * 10, max_float * 10, min_double, max_double):
-            expected = 'float: {}inf'.format('-' if inf < 0 else '')
+            expected = f"float: {'-' if inf < 0 else ''}inf"
             actual = try_to_convert(inf)
             self.assertEqual(expected, actual,
                              msg=get_conversion_error_msg(inf, expected, actual))
@@ -340,8 +339,11 @@ class Arguments(NewOpenCVTests):
         for nan in (float('NaN'), np.nan, np.double(np.nan),
                     np.double(float('NaN'))):
             actual = try_to_convert(nan)
-            self.assertIn('nan', actual, msg="Can't convert nan of type {} to double. "
-                          "Actual: {}".format(type(nan).__name__, actual))
+            self.assertIn(
+                'nan',
+                actual,
+                msg=f"Can't convert nan of type {type(nan).__name__} to double. Actual: {actual}",
+            )
 
     def test_parse_to_double_not_convertible(self):
         for not_convertible in ('s', 'str', (12,), [1, 2], np.array([1, 2], dtype=np.float),
@@ -361,7 +363,7 @@ class Arguments(NewOpenCVTests):
     def test_parse_to_cstring_convertible(self):
         try_to_convert = partial(self._try_to_convert, cv.utils.dumpCString)
         for convertible in ('', 's', 'str', str(123), ('char'), np.str('test1'), np.str_('test2')):
-            expected = 'string: ' + convertible
+            expected = f'string: {convertible}'
             actual = try_to_convert(convertible)
             self.assertEqual(expected, actual,
                              msg=get_conversion_error_msg(convertible, expected, actual))
@@ -375,7 +377,7 @@ class Arguments(NewOpenCVTests):
     def test_parse_to_string_convertible(self):
         try_to_convert = partial(self._try_to_convert, cv.utils.dumpString)
         for convertible in (None, '', 's', 'str', str(123), np.str('test1'), np.str_('test2')):
-            expected = 'string: ' + (convertible if convertible else '')
+            expected = 'string: ' + (convertible or '')
             actual = try_to_convert(convertible)
             self.assertEqual(expected, actual,
                              msg=get_conversion_error_msg(convertible, expected, actual))
@@ -443,8 +445,8 @@ class Arguments(NewOpenCVTests):
 
     def test_parse_to_range_convertible_to_all(self):
         try_to_convert = partial(self._try_to_convert, cv.utils.dumpRange)
+        expected = 'range: all'
         for convertible in ((), [], np.array([])):
-            expected = 'range: all'
             actual = try_to_convert(convertible)
             self.assertEqual(expected, actual,
                              msg=get_conversion_error_msg(convertible, expected, actual))
